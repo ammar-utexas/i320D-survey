@@ -52,7 +52,7 @@ The SurveyFlow frontend is a React single-page application that provides the use
 | FE-ADMIN-02 | P0 | Display validation errors from backend | - Show error messages clearly<br>- Highlight problematic fields if possible<br>- Allow re-upload after fixing |
 | FE-ADMIN-03 | P0 | Display generated survey URL with copy button | - Show full URL after survey creation<br>- One-click copy to clipboard<br>- Visual feedback on copy success |
 | FE-ADMIN-04 | P1 | Date/time pickers for open/close dates | - Date and time inputs for opens_at and closes_at<br>- Show current survey status (Open/Closed/Scheduled)<br>- Allow clearing dates |
-| FE-ADMIN-05 | P1 | Respondents table with status | - Table columns: Avatar, Username, Email, Status, Submitted At<br>- Status: Completed, In Progress, Not Started<br>- Pagination controls<br>- Search/filter by username |
+| FE-ADMIN-05 | P1 | Respondents table with status | - Table columns: Avatar, Username, Email, Status, Submitted At<br>- Status mapping from backend `is_draft`: null response = "Not Started", is_draft=true = "In Progress", is_draft=false = "Completed"<br>- Pagination controls<br>- Search/filter by username |
 | FE-ADMIN-06 | P1 | Export buttons for JSON and CSV | - Dropdown with format options<br>- Trigger browser download<br>- Show loading state during export |
 | FE-ADMIN-07 | P2 | Inline edit for survey metadata | - Edit button on survey title/description<br>- Inline form or modal<br>- Save and Cancel buttons |
 | FE-ADMIN-08 | P2 | Duplicate survey button | - Duplicate button on survey card<br>- Prompt for new survey title<br>- Navigate to new survey after creation |
@@ -65,8 +65,8 @@ The SurveyFlow frontend is a React single-page application that provides the use
 | FE-RESP-01 | P0 | Render all question types with appropriate components | - QuestionRenderer dispatches to type-specific components<br>- ScaleQuestion: 5 clickable buttons with labels<br>- SingleChoiceQuestion: Radio button group<br>- MultiCheckboxQuestion: Checkbox group<br>- DropdownQuestion: Select element<br>- SingleChoiceWithTextQuestion: Radio + conditional textarea<br>- OpenTextQuestion: Textarea with character counter |
 | FE-RESP-02 | P0 | Group questions by vector/section | - Card/section for each vector<br>- Vector name as section header<br>- Visual separation between sections<br>- Questions numbered within sections |
 | FE-RESP-03 | P0 | Client-side validation before submission | - Highlight required fields not filled<br>- Show error messages next to fields<br>- Prevent form submission until valid<br>- Scroll to first error field |
-| FE-RESP-04 | P1 | Auto-save responses as user progresses | - Debounced save (2 seconds after last change)<br>- "Saving..." indicator during save<br>- "All changes saved" confirmation<br>- Handle offline/error gracefully |
-| FE-RESP-05 | P1 | Load and display existing response for editing | - Fetch user's response on page load<br>- Pre-fill form with saved answers<br>- Show "Update Response" vs "Submit" button<br>- Last saved timestamp |
+| FE-RESP-04 | P1 | Auto-save responses as user progresses | - Debounced save (2 seconds after last change)<br>- Send `{ answers: {...}, is_draft: true }` for auto-save<br>- "Saving..." indicator during save<br>- "All changes saved" confirmation<br>- Handle offline/error gracefully |
+| FE-RESP-05 | P1 | Load and display existing response for editing | - Fetch user's response on page load (returns null if none)<br>- Pre-fill form with saved answers<br>- Show "Submit Survey" if is_draft=true, "Update Response" if is_draft=false<br>- Last saved timestamp |
 | FE-RESP-06 | P1 | Mobile-responsive design | - Responsive layout (mobile-first)<br>- Touch-friendly input sizes (min 44px tap targets)<br>- Stack sections vertically on mobile<br>- Readable text sizes |
 | FE-RESP-07 | P2 | Progress indicator | - Progress bar at top of survey<br>- Show percentage (e.g., "60% complete")<br>- Calculate based on required questions answered<br>- Update in real-time |
 | FE-RESP-08 | P2 | Keyboard navigation support | - Tab navigation between questions<br>- Enter/Space to select options<br>- Arrow keys for radio/scale questions<br>- Focus visible indicators |
@@ -189,9 +189,37 @@ All requests should:
 | Module | Endpoints |
 |--------|-----------|
 | Auth | GET /auth/github, POST /auth/logout, GET /auth/me |
-| Surveys | GET/POST /surveys, GET/PATCH/DELETE /surveys/:id |
+| Surveys | GET/POST /surveys, GET/PATCH/DELETE /surveys/:id, POST /surveys/:id/duplicate |
 | Responses | GET /surveys/:slug/public, POST /surveys/:slug/respond, GET /surveys/:slug/my-response |
 | Export | GET /surveys/:id/export?format=json\|csv |
+
+### 7.3 Request/Response Schemas
+
+**Submit Response (POST /surveys/:slug/respond)**
+```json
+{
+  "answers": {
+    "Q1": 3,
+    "Q2": "Option A",
+    "Q3": ["Option 1", "Option 2"],
+    "Q4": { "choice": "Yes", "text": "Details here" }
+  },
+  "is_draft": true
+}
+```
+- `is_draft: true` - Auto-save (can be updated later)
+- `is_draft: false` - Final submission (sets submitted_at)
+
+**Response Data (returned from POST and GET my-response)**
+```json
+{
+  "answers": { ... },
+  "is_draft": true,
+  "submitted_at": null,
+  "updated_at": "2026-01-18T12:00:00Z"
+}
+```
+Note: GET my-response returns `null` (not 404) if no response exists.
 
 ---
 
