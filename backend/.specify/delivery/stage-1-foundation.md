@@ -68,6 +68,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_EXPIRY_HOURS: int = 24
     JWT_ALGORITHM: str = "HS256"
+    JWT_COOKIE_NAME: str = "surveyflow_token"
 
     # CORS
     FRONTEND_URL: str
@@ -192,7 +193,7 @@ class UserResponse(BaseModel):
 **Cookie Settings**:
 ```python
 response.set_cookie(
-    key="access_token",
+    key=settings.JWT_COOKIE_NAME,  # "surveyflow_token"
     value=token,
     httponly=True,
     secure=True,  # HTTPS only in production
