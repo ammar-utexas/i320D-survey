@@ -1,0 +1,223 @@
+{
+  "survey_title": "Student Pairing Survey",
+  "description": "This survey helps us understand your skills, availability, and working style to pair you with a compatible teammate.",
+  "vectors": [
+    {
+      "vector_id": "technical_skills",
+      "vector_name": "Technical Skills & Background",
+      "pairing_strategy": "complement",
+      "questions": [
+        {
+          "question_id": "Q1",
+          "question": "Rate your comfort level with Python programming.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q2",
+          "question": "Rate your experience with data manipulation libraries (pandas, NumPy).",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q3",
+          "question": "Rate your comfort with statistical analysis and hypothesis testing.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q4",
+          "question": "Rate your experience with data visualization (matplotlib, seaborn, Tableau).",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q5",
+          "question": "Rate your familiarity with machine learning concepts and tools.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q6",
+          "question": "Rate your experience working with healthcare or biomedical datasets.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q7",
+          "question": "Rate your comfort with SQL or database querying.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q8",
+          "question": "What technical skill do you most want to improve this semester?",
+          "type": "open_text"
+        },
+        {
+          "question_id": "Q9",
+          "question": "What is a technical strength you could teach a teammate?",
+          "type": "open_text"
+        }
+      ]
+    },
+    {
+      "vector_id": "commitment_availability",
+      "vector_name": "Commitment & Availability",
+      "pairing_strategy": "match",
+      "questions": [
+        {
+          "question_id": "Q10",
+          "question": "How many hours per week do you realistically plan to dedicate to this course outside of class?",
+          "type": "dropdown",
+          "options": [
+            "<3",
+            "3-5",
+            "5-8",
+            "8-12",
+            "12+"
+          ]
+        },
+        {
+          "question_id": "Q11",
+          "question": "How would you describe your typical approach to deadlines?",
+          "type": "single_choice",
+          "options": [
+            "I prefer to finish well ahead of time",
+            "I work steadily and finish on time",
+            "I tend to work best closer to the deadline"
+          ]
+        },
+        {
+          "question_id": "Q12",
+          "question": "What grade outcome are you aiming for in this course?",
+          "type": "single_choice",
+          "options": [
+            "A (high achievement is a priority)",
+            "B (solid performance, balanced with other commitments)",
+            "Pass (completing requirements is my main goal)"
+          ]
+        },
+        {
+          "question_id": "Q13",
+          "question": "Which time blocks are you typically available for team meetings?",
+          "type": "multi_checkbox",
+          "options": [
+            "Weekday mornings",
+            "Weekday afternoons",
+            "Weekday evenings",
+            "Weekend mornings",
+            "Weekend afternoons",
+            "Weekend evenings"
+          ]
+        },
+        {
+          "question_id": "Q14",
+          "question": "Do you have any major commitments this semester that might affect your availability?",
+          "type": "single_choice_with_text",
+          "options": [
+            "Yes",
+            "No"
+          ],
+          "text_prompt": "If yes, please describe:"
+        }
+      ]
+    },
+    {
+      "vector_id": "communication_collaboration",
+      "vector_name": "Communication & Collaboration Style",
+      "pairing_strategy": "match",
+      "questions": [
+        {
+          "question_id": "Q15",
+          "question": "I am comfortable giving constructive feedback to teammates.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q16",
+          "question": "I am comfortable receiving critical feedback on my work.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q17",
+          "question": "I prefer frequent check-ins with teammates rather than working independently until deadlines.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q18",
+          "question": "I am comfortable speaking up when I disagree with a teammate's approach.",
+          "type": "scale_1_5"
+        },
+        {
+          "question_id": "Q19",
+          "question": "When facing a disagreement in a team, I usually:",
+          "type": "single_choice",
+          "options": [
+            "Advocate strongly for my position",
+            "Look for compromise",
+            "Defer to others to avoid conflict",
+            "Seek outside input to resolve it"
+          ]
+        },
+        {
+          "question_id": "Q20",
+          "question": "How do you prefer to communicate with teammates?",
+          "type": "single_choice",
+          "options": [
+            "Synchronous (video calls, in-person)",
+            "Asynchronous (Slack, email, shared docs)",
+            "A mix of both"
+          ]
+        },
+        {
+          "question_id": "Q21",
+          "question": "Describe a positive team experience you have had. What made it work?",
+          "type": "open_text"
+        },
+        {
+          "question_id": "Q22",
+          "question": "Describe a frustrating team experience. What went wrong?",
+          "type": "open_text"
+        }
+      ]
+    },
+    {
+      "vector_id": "perspective_problem_solving",
+      "vector_name": "Perspective & Problem-Solving",
+      "pairing_strategy": "complement",
+      "questions": [
+        {
+          "question_id": "Q23",
+          "question": "When starting a new data problem, I tend to:",
+          "type": "single_choice",
+          "options": [
+            "Dive into the data and explore first",
+            "Plan my approach carefully before touching the data",
+            "Look for similar examples or tutorials to guide me"
+          ]
+        },
+        {
+          "question_id": "Q24",
+          "question": "What is your primary academic or professional background?",
+          "type": "single_choice",
+          "options": [
+            "Computer Science / Engineering",
+            "Biology / Life Sciences",
+            "Healthcare / Clinical",
+            "Statistics / Mathematics",
+            "Business / Other",
+            "Undecided / Interdisciplinary"
+          ]
+        },
+        {
+          "question_id": "Q25",
+          "question": "When interpreting results, I am more drawn to:",
+          "type": "single_choice",
+          "options": [
+            "Technical accuracy and methodological rigor",
+            "Practical implications and real-world applicability",
+            "Both equally"
+          ]
+        },
+        {
+          "question_id": "Q26",
+          "question": "What is a biomedical or healthcare problem you would be excited to explore with data?",
+          "type": "open_text"
+        }
+      ]
+    }
+  ]
+}
