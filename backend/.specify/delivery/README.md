@@ -1,124 +1,123 @@
-# Backend Delivery Plan
+# SurveyFlow Backend - Multi-Stage Delivery Plan
 
-This directory contains the staged delivery plan for the SurveyFlow backend API. Each stage is designed to coordinate with the corresponding frontend stage(s) for synchronized demos.
+## Overview
 
-## Stage Overview
+This document outlines the phased delivery of the SurveyFlow backend API. Each stage is self-contained with clear deliverables, enabling incremental development and early integration with the frontend.
 
-| Backend Stage | Frontend Stage(s) | Demo Capability |
-|---------------|-------------------|-----------------|
-| **Stage 1**: Foundation & Auth | FE Stage 1 | User signs in via GitHub, sees authenticated shell |
-| **Stage 2**: Survey Public API | FE Stages 2-3 | User completes survey with auto-save |
-| **Stage 3**: Admin Survey CRUD | FE Stage 4 | Admin creates surveys, shares URLs |
-| **Stage 4**: Responses & Export | FE Stage 5 | Admin views responses, exports data |
+## Stage Summary
 
-## Coordination Map
+| Stage | Name | Priority | Dependencies | Key Deliverables |
+|-------|------|----------|--------------|------------------|
+| 1 | [Foundation & Authentication](./stage-1-foundation.md) | P0 | None | Project setup, GitHub OAuth, JWT |
+| 2 | [Survey Public API](./stage-2-survey-public-api.md) | P0 | Stage 1 | Survey retrieval, response submission |
+| 3 | [Admin Survey CRUD](./stage-3-admin-survey-crud.md) | P0 | Stage 2 | Create, update, delete, duplicate surveys |
+| 4 | [Export & Response Management](./stage-4-export-advanced.md) | P1 | Stage 3 | Response list, JSON/CSV export |
+
+## Dependency Graph
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DEMO CHECKPOINTS                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  CHECKPOINT 1: Authentication                                               │
-│  ┌──────────────────────┐    ┌──────────────────────┐                      │
-│  │ Backend Stage 1      │◄──►│ Frontend Stage 1     │                      │
-│  │ - Health endpoint    │    │ - Project setup      │                      │
-│  │ - GitHub OAuth       │    │ - API client         │                      │
-│  │ - JWT cookies        │    │ - Auth context       │                      │
-│  │ - User model         │    │ - Login page         │                      │
-│  └──────────────────────┘    └──────────────────────┘                      │
-│  Demo: Sign in → See avatar → Logout                                        │
-│                                                                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  CHECKPOINT 2: Survey Response                                              │
-│  ┌──────────────────────┐    ┌──────────────────────┐                      │
-│  │ Backend Stage 2      │◄──►│ Frontend Stage 2     │                      │
-│  │ - Survey model       │    │ - Question components│                      │
-│  │ - Response model     │    │ - Survey form        │                      │
-│  │ - Public survey API  │    │ - Survey page        │                      │
-│  │ - Response upsert    │    └──────────────────────┘                      │
-│  │ - Config validation  │    ┌──────────────────────┐                      │
-│  └──────────────────────┘◄──►│ Frontend Stage 3     │                      │
-│                              │ - Auto-save          │                      │
-│                              │ - Progress bar       │                      │
-│                              │ - Validation         │                      │
-│                              │ - Resume response    │                      │
-│                              └──────────────────────┘                      │
-│  Demo: View survey → Fill answers → Auto-save → Resume later               │
-│                                                                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  CHECKPOINT 3: Admin Dashboard                                              │
-│  ┌──────────────────────┐    ┌──────────────────────┐                      │
-│  │ Backend Stage 3      │◄──►│ Frontend Stage 4     │                      │
-│  │ - Survey CRUD        │    │ - Admin routes       │                      │
-│  │ - Admin auth         │    │ - Dashboard page     │                      │
-│  │ - Slug generation    │    │ - Survey list        │                      │
-│  │ - Config validation  │    │ - File upload        │                      │
-│  │ - Response counts    │    │ - URL display        │                      │
-│  └──────────────────────┘    └──────────────────────┘                      │
-│  Demo: Upload JSON → Create survey → Copy URL → Share with respondents     │
-│                                                                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  CHECKPOINT 4: Data Export (Feature Complete)                               │
-│  ┌──────────────────────┐    ┌──────────────────────┐                      │
-│  │ Backend Stage 4      │◄──►│ Frontend Stage 5     │                      │
-│  │ - Response listing   │    │ - Response table     │                      │
-│  │ - Pagination/search  │    │ - Pagination         │                      │
-│  │ - JSON export        │    │ - Export dropdown    │                      │
-│  │ - CSV export         │    │ - Edit/delete modal  │                      │
-│  │ - Statistics         │    │ - Survey stats       │                      │
-│  └──────────────────────┘    └──────────────────────┘                      │
-│  Demo: View responses → Search → Export CSV → Use for student pairing      │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+Stage 1: Foundation & Auth
+    │
+    ▼
+Stage 2: Survey Public API (Respondent)
+    │
+    ▼
+Stage 3: Admin Survey CRUD
+    │
+    ▼
+Stage 4: Export & Response Management
 ```
+
+**Sequential Path**: Backend stages are sequential as each builds on the previous.
+
+## Frontend Coordination
+
+| Backend Stage | Coordinates With | Integration Point |
+|---------------|------------------|-------------------|
+| Stage 1 | Frontend Stage 1 | OAuth flow, user session |
+| Stage 2 | Frontend Stages 2-3 | Survey rendering, response submission |
+| Stage 3 | Frontend Stage 4 | Survey creation, URL sharing |
+| Stage 4 | Frontend Stage 5 | Response table, export downloads |
+
+## MVP Definition
+
+**Minimum Viable Product (Stages 1-3)**:
+- Users can authenticate via GitHub OAuth
+- Admins can create surveys and get shareable URLs
+- Respondents can view and submit survey responses
+
+**Full Product (+ Stage 4)**:
+- Admins can view response tables
+- Admins can export data as JSON or CSV
+- Filtering and anonymization options
+
+## Milestone Checkpoints
+
+| Milestone | Stages Complete | API Capability |
+|-----------|-----------------|----------------|
+| M1: Auth Working | 1 | OAuth login, JWT sessions |
+| M2: Surveys Accessible | 1, 2 | Public survey retrieval, response submission |
+| M3: Admin CRUD | 1-3 | Full survey management |
+| M4: Feature Complete | All | Export and response management |
 
 ## API Endpoints by Stage
 
-### Stage 1: Foundation & Auth
-```
-GET  /api/v1/health                    # Health check
-GET  /api/v1/auth/github               # Initiate OAuth
-GET  /api/v1/auth/github/callback      # OAuth callback
-POST /api/v1/auth/logout               # Clear session
-GET  /api/v1/auth/me                   # Current user
-```
+### Stage 1 Endpoints
+- `GET /api/v1/health`
+- `GET /api/v1/auth/github`
+- `GET /api/v1/auth/github/callback`
+- `POST /api/v1/auth/logout`
+- `GET /api/v1/auth/me`
 
-### Stage 2: Survey Public API
-```
-GET  /api/v1/surveys/{slug}/public     # Get survey for rendering
-POST /api/v1/surveys/{slug}/respond    # Submit/update response
-GET  /api/v1/surveys/{slug}/my-response # Get user's response
-```
+### Stage 2 Endpoints
+- `GET /api/v1/surveys/{slug}/public`
+- `POST /api/v1/surveys/{slug}/respond`
+- `GET /api/v1/surveys/{slug}/my-response`
 
-### Stage 3: Admin Survey CRUD
-```
-POST /api/v1/surveys                   # Create survey
-GET  /api/v1/surveys                   # List admin's surveys
-GET  /api/v1/surveys/{id}              # Get survey details
-PATCH /api/v1/surveys/{id}             # Update survey metadata
-DELETE /api/v1/surveys/{id}            # Soft-delete survey
-```
+### Stage 3 Endpoints
+- `POST /api/v1/surveys`
+- `GET /api/v1/surveys`
+- `GET /api/v1/surveys/{survey_id}`
+- `PATCH /api/v1/surveys/{survey_id}`
+- `DELETE /api/v1/surveys/{survey_id}`
+- `POST /api/v1/surveys/{survey_id}/duplicate`
 
-### Stage 4: Responses & Export
-```
-GET  /api/v1/surveys/{id}/responses    # List responses (paginated)
-GET  /api/v1/surveys/{id}/export       # Export CSV/JSON
-GET  /api/v1/surveys/{id}/stats        # Response statistics
-```
+### Stage 4 Endpoints
+- `GET /api/v1/surveys/{survey_id}/responses`
+- `GET /api/v1/surveys/{survey_id}/export`
 
-## Development Workflow
+## Database Migrations by Stage
 
-1. **Start with Stage 1** on both frontend and backend
-2. Deploy to staging after each checkpoint
-3. Demo combined functionality before proceeding
-4. Frontend and backend can work in parallel within a stage
+| Stage | Migration | Tables |
+|-------|-----------|--------|
+| 1 | 001_create_users_table | users |
+| 2 | 002_create_surveys_table | surveys |
+| 2 | 003_create_responses_table | responses |
 
-## Files in This Directory
+## Constitution Alignment
 
-- `stage-1-foundation.md` - Project setup, database, GitHub OAuth, JWT
-- `stage-2-survey-public-api.md` - Survey retrieval, response submission
-- `stage-3-admin-survey-crud.md` - Survey management for admins
-- `stage-4-responses-export.md` - Response viewing and data export
+All stages adhere to the [Constitution](../memory/constitution.md):
+
+| Principle | Enforcement |
+|-----------|-------------|
+| I. Security-First | HTTP-only cookies, server-side OAuth tokens |
+| II. Type Safety | Pydantic schemas, type hints, MyPy |
+| III. Async-First | SQLAlchemy async, async handlers |
+| IV. Testing | Pytest fixtures, test database |
+| V. Code Quality | Black, Ruff, separated services |
+| VI. RESTful API | Versioned endpoints, proper status codes |
+| VII. Simplicity | Minimal implementation |
+
+## How to Use This Plan
+
+1. **Start a stage**: Read the stage document thoroughly
+2. **Track progress**: Use the acceptance criteria as a checklist
+3. **Coordinate**: Check "Coordinates With" for frontend integration points
+4. **Complete stage**: Verify all acceptance criteria pass
+5. **Move to next**: Only proceed when current stage is complete
+
+## Revision History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 2026-01-18 | Initial 4-stage delivery plan |
