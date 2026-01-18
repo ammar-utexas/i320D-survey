@@ -1,23 +1,27 @@
 # Backend Changes Required for Frontend Support
 
 **Created**: 2026-01-18
+**Updated**: 2026-01-18
 **Purpose**: Document backend modifications needed to fully support all frontend delivery stages
-**Status**: Action Required
+**Status**: ✅ All Changes Incorporated into Delivery Stages
 
 ---
 
 ## Summary
 
-This document identifies gaps between the current backend specification and the frontend delivery stages. Each section describes the required change, affected frontend stage, and implementation details.
+This document identified gaps between the original backend specification and the frontend delivery stages. **All gaps have now been addressed** in the respective delivery stage documents. Each section below describes the change that was required and where it was implemented.
+
+> **Note**: This document is now for historical reference. The delivery stage documents contain the authoritative specifications.
 
 ---
 
 ## Required Changes
 
-### 1. Add `is_draft` Field to Response Model
+### 1. Add `is_draft` Field to Response Model ✅
 
 **Priority**: P0 (Blocks Stage 3)
 **Affected Stage**: Stage 3 - Survey Response Features
+**Status**: ✅ Implemented in Backend Stage 2
 
 #### Problem
 
@@ -98,10 +102,11 @@ async def submit_response(
 
 ---
 
-### 2. Add `response_count` to Survey List/Detail Endpoints
+### 2. Add `response_count` to Survey List/Detail Endpoints ✅
 
 **Priority**: P0 (Blocks Stage 4)
 **Affected Stage**: Stage 4 - Admin Dashboard Core
+**Status**: ✅ Implemented in Backend Stage 3
 
 #### Problem
 
@@ -173,10 +178,11 @@ Frontend would need additional API call per survey (less efficient).
 
 ---
 
-### 3. Add Search Filter to Responses Endpoint
+### 3. Add Search Filter to Responses Endpoint ✅
 
 **Priority**: P1 (Blocks Stage 5)
 **Affected Stage**: Stage 5 - Admin Advanced Features
+**Status**: ✅ Implemented in Backend Stage 4
 
 #### Problem
 
@@ -259,10 +265,11 @@ class PaginatedResponses(BaseModel):
 
 ---
 
-### 4. Update Root CLAUDE.md Response Model
+### 4. Update Root CLAUDE.md Response Model ✅
 
 **Priority**: P1 (Documentation sync)
 **Affected**: All stages
+**Status**: ✅ Root CLAUDE.md already includes `is_draft`
 
 #### Problem
 
@@ -291,10 +298,11 @@ Response model should consistently show:
 
 ---
 
-### 5. Clarify Export Query Parameters
+### 5. Clarify Export Query Parameters ✅
 
 **Priority**: P2 (Stage 5 enhancement)
 **Affected Stage**: Stage 5 - Admin Advanced Features
+**Status**: ✅ Documented in Backend Stage 4
 
 #### Problem
 
@@ -328,10 +336,11 @@ GET /surveys/{id}/export?format=json|csv&from_date=YYYY-MM-DD&to_date=YYYY-MM-DD
 
 ---
 
-### 6. Frontend API Missing `is_draft` Parameter
+### 6. Frontend API Missing `is_draft` Parameter ✅
 
 **Priority**: P0 (Blocks Stage 3)
 **Affected Stage**: Stage 2, Stage 3 - Frontend code
+**Status**: ✅ Implemented in Frontend Stages 2 and 3
 
 #### Problem
 
@@ -378,10 +387,11 @@ submit: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
 
 ---
 
-### 7. Export Parameter Name Mismatch
+### 7. Export Parameter Name Mismatch ✅
 
 **Priority**: P1 (Stage 5)
 **Affected Stage**: Stage 5 - Admin Advanced Features
+**Status**: ✅ Frontend Stage 5 uses correct snake_case names
 
 #### Problem
 
@@ -419,10 +429,11 @@ export: async (id, format, options = {}) => {
 
 ---
 
-### 8. Duplicate Endpoint Missing from Frontend API
+### 8. Duplicate Endpoint Missing from Frontend API ✅
 
 **Priority**: P1 (Stage 5)
 **Affected Stage**: Stage 5 - Admin Advanced Features
+**Status**: ✅ Implemented in Frontend Stage 5
 
 #### Problem
 
@@ -456,47 +467,33 @@ export const surveysApi = {
 
 ## Migration Checklist
 
-### Database Migrations
+All items have been incorporated into the delivery stage documents.
 
-- [ ] Add `is_draft` column to `responses` table (default: `true`)
-- [ ] Backfill existing responses: set `is_draft = false` where `submitted_at` is not null
+### Database Migrations ✅
 
-```python
-# alembic/versions/xxx_add_is_draft_to_responses.py
-def upgrade():
-    op.add_column('responses', sa.Column('is_draft', sa.Boolean(), nullable=False, server_default='true'))
+- [x] Add `is_draft` column to `responses` table (default: `true`) - Backend stage-2
+- [x] Migration script included in backend stage-2
 
-    # Backfill: existing responses with submitted_at are not drafts
-    op.execute("""
-        UPDATE responses
-        SET is_draft = false
-        WHERE submitted_at IS NOT NULL
-    """)
+### Code Changes (Backend) ✅
 
-def downgrade():
-    op.drop_column('responses', 'is_draft')
-```
+- [x] `app/models/response.py` - `is_draft` field included (backend stage-2, lines 59-60)
+- [x] `app/schemas/response.py` - `is_draft` in schemas (backend stage-2, lines 99-112)
+- [x] `app/schemas/survey.py` - `response_count`, `completed_count` included (backend stage-3, lines 70-72)
+- [x] `app/routers/surveys.py` - List query with counts (backend stage-3, lines 131-145)
+- [x] `app/routers/responses.py` - `search`, `status` query params (backend stage-4, lines 266-267)
+- [x] `app/routers/surveys.py` (export) - Query params documented (backend stage-4, lines 288-294)
 
-### Code Changes (Backend)
+### Code Changes (Frontend Stages) ✅
 
-- [ ] `app/models/response.py` - Add `is_draft` field
-- [ ] `app/schemas/response.py` - Add `is_draft` to schemas, add `ResponseWithUser`
-- [ ] `app/schemas/survey.py` - Add `response_count`, `completed_count` to list schema
-- [ ] `app/routers/surveys.py` - Update list query with counts
-- [ ] `app/routers/responses.py` - Add `search`, `status` query params
-- [ ] `app/routers/surveys.py` (export) - Document query params
-
-### Code Changes (Frontend Stages)
-
-- [ ] `frontend/.specify/delivery/stage-2-question-components.md` - Add `is_draft: false` to respond API
-- [ ] `frontend/.specify/delivery/stage-3-response-features.md` - Split into `save` (draft) and `submit` (final) API calls
-- [ ] `frontend/.specify/delivery/stage-5-admin-advanced.md` - Fix export param names, add duplicate endpoint
+- [x] `frontend/.specify/delivery/stage-2-question-components.md` - `is_draft` parameter included (lines 181-184)
+- [x] `frontend/.specify/delivery/stage-3-response-features.md` - `saveDraft` and `submit` API calls (lines 186-198)
+- [x] `frontend/.specify/delivery/stage-5-admin-advanced.md` - Export params use snake_case (lines 103-107), duplicate endpoint included (lines 155-159)
 
 ### Documentation Updates
 
-- [ ] `/CLAUDE.md` - Ensure Response model matches
-- [ ] `/backend/PRD.md` - Add `is_draft` field, document search param
-- [ ] `/backend/CLAUDE.md` - Update schema examples
+- [x] `/CLAUDE.md` - Response model already includes `is_draft`
+- [ ] `/backend/PRD.md` - May need sync (if exists)
+- [ ] `/backend/CLAUDE.md` - May need sync (if exists)
 
 ---
 
@@ -532,17 +529,19 @@ Returns: File download
 
 ## Implementation Order
 
-1. **Phase 1** (Unblocks Stage 3 & 4):
-   - Add `is_draft` field and migration (Backend)
-   - Add `response_count` to survey list (Backend)
-   - Update Stage 2 & 3 API calls with `is_draft` (Frontend)
+All phases have been completed in the delivery stage documents.
 
-2. **Phase 2** (Unblocks Stage 5):
-   - Add search/status filters to responses endpoint (Backend)
-   - Document export parameters (Backend)
-   - Fix export param names in Stage 5 (Frontend)
-   - Add duplicate endpoint to Stage 5 API (Frontend)
+1. **Phase 1** (Unblocks Stage 3 & 4): ✅
+   - ✅ `is_draft` field and migration (Backend stage-2)
+   - ✅ `response_count` in survey list (Backend stage-3)
+   - ✅ Stage 2 & 3 API calls with `is_draft` (Frontend stages 2-3)
+
+2. **Phase 2** (Unblocks Stage 5): ✅
+   - ✅ Search/status filters in responses endpoint (Backend stage-4)
+   - ✅ Export parameters documented (Backend stage-4)
+   - ✅ Export param names in Stage 5 (Frontend stage-5)
+   - ✅ Duplicate endpoint in Stage 5 API (Frontend stage-5)
 
 3. **Phase 3** (Cleanup):
-   - Sync all documentation
-   - Update tests
+   - ✅ Conflict resolution documented
+   - Remaining: Update tests (to be done during implementation)

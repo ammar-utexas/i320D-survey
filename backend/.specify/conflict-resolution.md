@@ -1,8 +1,9 @@
 # Frontend-Backend Conflict Resolution
 
 **Created**: 2026-01-18
+**Updated**: 2026-01-18
 **Purpose**: Comprehensive list of conflicts between frontend and backend delivery stages
-**Status**: Needs Resolution
+**Status**: ✅ All Conflicts Resolved
 
 ---
 
@@ -12,27 +13,14 @@
 
 **Severity**: Critical
 **Blocks**: Frontend Stage 2-3
+**Status**: ✅ RESOLVED
 
 | Frontend Expects | Backend Provides |
 |------------------|------------------|
 | `POST /surveys/{slug}/respond` | `POST /surveys/{slug}/respond` |
-| Body: `{ answers: {}, is_draft: boolean }` | Body: `{ answers: {} }` |
+| Body: `{ answers: {}, is_draft: boolean }` | Body: `{ answers: {}, is_draft: boolean }` ✅ |
 
-**Frontend Code** (stage-2, line 181-184):
-```js
-respond: (slug, answers, isDraft = false) => apiRequest(`/surveys/${slug}/respond`, {
-  method: 'POST',
-  body: { answers, is_draft: isDraft },
-}),
-```
-
-**Backend Schema** (stage-2, line 99-101):
-```python
-class ResponseSubmit(BaseModel):
-    answers: dict  # Missing is_draft!
-```
-
-**Resolution**: Update `ResponseSubmit` schema to include `is_draft: bool = True`
+**Resolution Applied**: Backend stage-2 `ResponseSubmit` schema now includes `is_draft: bool = True` (lines 99-102)
 
 ---
 
@@ -40,31 +28,13 @@ class ResponseSubmit(BaseModel):
 
 **Severity**: Critical
 **Blocks**: Frontend Stage 5
+**Status**: ✅ RESOLVED
 
 | Frontend Expects | Backend Provides |
 |------------------|------------------|
-| `GET /surveys/{id}/responses?search=username` | `GET /surveys/{id}/responses?page=1&page_size=20` |
+| `GET /surveys/{id}/responses?search=username` | `GET /surveys/{id}/responses?search=username` ✅ |
 
-**Frontend Code** (stage-5, line 237-240):
-```js
-getResponses: (id, params) => {
-  // params: { limit, offset, search, status }
-  const query = new URLSearchParams(params).toString();
-  return apiRequest(`/surveys/${id}/responses?${query}`);
-},
-```
-
-**Backend Route** (stage-4, line 237-243):
-```python
-async def list_survey_responses(
-    survey_id: UUID,
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
-    # Missing: search, status
-)
-```
-
-**Resolution**: Add `search: str | None` and `status: str | None` query params to backend
+**Resolution Applied**: Backend stage-4 now includes `search: str | None` query parameter (line 266)
 
 ---
 
@@ -72,28 +42,13 @@ async def list_survey_responses(
 
 **Severity**: High
 **Blocks**: Frontend Stage 5
+**Status**: ✅ RESOLVED
 
 | Frontend Expects | Backend Provides |
 |------------------|------------------|
-| `limit`, `offset` | `page`, `page_size` |
+| `limit`, `offset` | `limit`, `offset` ✅ |
 
-**Frontend Code** (stage-5, line 237-240):
-```js
-// params: { limit, offset, search, status }
-```
-
-**Backend Route** (stage-4):
-```python
-page: int = Query(1, ge=1),
-page_size: int = Query(20, ge=1, le=100),
-```
-
-**Resolution Options**:
-1. **Option A**: Backend changes to `limit`/`offset` (common REST pattern)
-2. **Option B**: Frontend changes to `page`/`page_size` (simpler math)
-3. **Option C**: Backend accepts both and converts internally
-
-**Recommended**: Option A - Backend uses `limit`/`offset` as it's more RESTful
+**Resolution Applied**: Backend stage-4 uses `limit`/`offset` (lines 264-265) matching frontend expectations
 
 ---
 
@@ -103,19 +58,13 @@ page_size: int = Query(20, ge=1, le=100),
 
 **Severity**: High
 **Blocks**: Frontend Stage 5 filtering
+**Status**: ✅ RESOLVED
 
 | Frontend Expects | Backend Provides |
 |------------------|------------------|
-| `?status=completed\|draft\|all` | No status filter |
+| `?status=completed\|draft\|all` | `?status=completed\|draft\|all` ✅ |
 
-**Frontend Code** (stage-5, line 20-23):
-```
-Status values derived from is_draft field:
-- Completed: is_draft: false
-- In Progress: is_draft: true
-```
-
-**Resolution**: Add `status: Literal['completed', 'draft', 'all'] | None` query param
+**Resolution Applied**: Backend stage-4 includes `status: Literal['completed', 'draft', 'all'] | None` query parameter (line 267)
 
 ---
 
@@ -123,24 +72,13 @@ Status values derived from is_draft field:
 
 **Severity**: Medium
 **Affects**: Frontend Stage 4 dashboard stats
+**Status**: ✅ RESOLVED
 
 | Frontend Expects | Backend Provides |
 |------------------|------------------|
-| `response_count`, `completed_count` | `response_count`, `is_open` |
+| `response_count`, `completed_count` | `response_count`, `completed_count`, `is_open` ✅ |
 
-**Alignment Doc** (line 131):
-```python
-completed_count: int  # NEW FIELD (is_draft=False)
-```
-
-**Backend Stage 3** SurveyListItem:
-```python
-response_count: int
-is_open: bool  # Computed: within open/close window
-# Missing: completed_count
-```
-
-**Resolution**: Add `completed_count` to SurveyListItem schema and query
+**Resolution Applied**: Backend stage-3 `SurveyListItem` schema includes both `response_count: int` and `completed_count: int` (lines 70-72)
 
 ---
 
@@ -148,22 +86,16 @@ is_open: bool  # Computed: within open/close window
 
 **Severity**: High
 **Affects**: Submit vs Draft behavior
+**Status**: ✅ RESOLVED
 
-**Frontend Behavior** (stage-3, line 187-198):
-```js
-// Auto-save as draft (is_draft: true)
-saveDraft: (slug, answers) => ...body: { answers, is_draft: true }
+**Frontend Behavior** (stage-3, lines 187-198):
+- `saveDraft`: sends `is_draft: true`
+- `submit`: sends `is_draft: false`
 
-// Final submission (is_draft: false)
-submit: (slug, answers) => ...body: { answers, is_draft: false }
-```
-
-**Backend upsert** (stage-2, line 158-176) doesn't handle:
-1. Setting `is_draft` from request body
-2. Setting `submitted_at` when `is_draft` changes from `true` to `false`
-3. Preventing re-submission (is_draft back to true after submit?)
-
-**Resolution**: Update upsert logic per alignment doc section 1
+**Resolution Applied**: Backend stage-2 `upsert_response` function (lines 159-195) now:
+1. ✅ Sets `is_draft` from request body (line 173)
+2. ✅ Sets `submitted_at` when transitioning from draft to submitted (lines 176-178)
+3. ✅ Handles new responses with correct `is_draft` and `submitted_at` (lines 185-191)
 
 ---
 
@@ -256,30 +188,32 @@ async def duplicate_survey(
 
 ## Resolution Summary
 
-| ID | Conflict | Resolution | Owner | Priority |
-|----|----------|------------|-------|----------|
-| C1 | ResponseSubmit missing is_draft | Add `is_draft: bool = True` to schema | Backend | P0 |
-| C2 | Missing search filter | Add `search` query param | Backend | P0 |
-| C3 | Pagination naming | Use `limit`/`offset` in backend | Backend | P0 |
-| C4 | Missing status filter | Add `status` query param | Backend | P1 |
-| C5 | Missing completed_count | Add to SurveyListItem + query | Backend | P1 |
-| C6 | Upsert is_draft logic | Implement draft→submit transition | Backend | P0 |
+| ID | Conflict | Resolution | Status |
+|----|----------|------------|--------|
+| C1 | ResponseSubmit missing is_draft | Added `is_draft: bool = True` to schema | ✅ Done |
+| C2 | Missing search filter | Added `search` query param | ✅ Done |
+| C3 | Pagination naming | Using `limit`/`offset` in backend | ✅ Done |
+| C4 | Missing status filter | Added `status` query param | ✅ Done |
+| C5 | Missing completed_count | Added to SurveyListItem + query | ✅ Done |
+| C6 | Upsert is_draft logic | Implemented draft→submit transition | ✅ Done |
 
 ---
 
 ## Implementation Order
 
-### Phase 1: Unblock Stage 2-3 Integration
-1. **C1**: Add `is_draft` to ResponseSubmit schema
-2. **C6**: Update upsert to handle is_draft and submitted_at
+All phases have been completed in the delivery stage documents.
 
-### Phase 2: Unblock Stage 4 Integration
-3. **C5**: Add `completed_count` to survey list response
+### Phase 1: Unblock Stage 2-3 Integration ✅
+1. **C1**: ✅ `is_draft` added to ResponseSubmit schema (backend stage-2)
+2. **C6**: ✅ Upsert handles is_draft and submitted_at (backend stage-2)
 
-### Phase 3: Unblock Stage 5 Integration
-4. **C3**: Change pagination to `limit`/`offset`
-5. **C2**: Add `search` query parameter
-6. **C4**: Add `status` query parameter
+### Phase 2: Unblock Stage 4 Integration ✅
+3. **C5**: ✅ `completed_count` added to survey list response (backend stage-3)
+
+### Phase 3: Unblock Stage 5 Integration ✅
+4. **C3**: ✅ Pagination uses `limit`/`offset` (backend stage-4)
+5. **C2**: ✅ `search` query parameter added (backend stage-4)
+6. **C4**: ✅ `status` query parameter added (backend stage-4)
 
 ---
 
