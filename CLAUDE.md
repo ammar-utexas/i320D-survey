@@ -123,7 +123,8 @@ Base URL: `/api/v1`
   "user_id": "uuid",
   "answers": "jsonb",
   "is_draft": "boolean (true=auto-saved, false=submitted)",
-  "submitted_at": "timestamp",
+  "submitted_at": "timestamp (nullable, set when is_draft becomes false)",
+  "created_at": "timestamp",
   "updated_at": "timestamp"
 }
 ```

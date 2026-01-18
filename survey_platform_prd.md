@@ -237,6 +237,7 @@ All endpoints are prefixed with `/api/v1`. FastAPI auto-generates OpenAPI docs a
 | GET | `/surveys/{survey_id}` | Get survey details and config |
 | PATCH | `/surveys/{survey_id}` | Update survey metadata (title, dates) |
 | DELETE | `/surveys/{survey_id}` | Soft-delete survey |
+| POST | `/surveys/{survey_id}/duplicate` | Duplicate survey with new slug |
 | GET | `/surveys/{survey_id}/responses` | List all responses with user info |
 | GET | `/surveys/{survey_id}/export` | Export responses (query: `?format=csv\|json`) |
 
@@ -283,8 +284,9 @@ All endpoints are prefixed with `/api/v1`. FastAPI auto-generates OpenAPI docs a
   "description": "string",
   "config": "jsonb (full survey JSON)",
   "created_by": "uuid (user.id)",
-  "opens_at": "timestamp",
-  "closes_at": "timestamp",
+  "opens_at": "timestamp (nullable)",
+  "closes_at": "timestamp (nullable)",
+  "deleted_at": "timestamp (nullable, for soft delete)",
   "created_at": "timestamp",
   "updated_at": "timestamp"
 }
@@ -298,7 +300,9 @@ All endpoints are prefixed with `/api/v1`. FastAPI auto-generates OpenAPI docs a
   "survey_id": "uuid",
   "user_id": "uuid",
   "answers": "jsonb",
-  "submitted_at": "timestamp",
+  "is_draft": "boolean (true=auto-saved, false=submitted)",
+  "submitted_at": "timestamp (nullable, set when is_draft becomes false)",
+  "created_at": "timestamp",
   "updated_at": "timestamp"
 }
 ```
@@ -701,6 +705,7 @@ DATABASE_URL=postgresql://...
 # Security
 JWT_SECRET=generate-a-long-random-string
 JWT_EXPIRY_HOURS=24
+JWT_COOKIE_NAME=surveyflow_token
 
 # Frontend URL (for CORS and redirects)
 FRONTEND_URL=https://your-app.vercel.app
