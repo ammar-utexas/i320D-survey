@@ -67,7 +67,8 @@ class SurveyListItem(BaseModel):
     title: str
     opens_at: datetime | None
     closes_at: datetime | None
-    response_count: int
+    response_count: int  # Total responses (draft + submitted)
+    completed_count: int  # Submitted responses (is_draft=False)
     is_open: bool  # Computed: within open/close window
 
     model_config = ConfigDict(from_attributes=True)
@@ -130,7 +131,11 @@ async def generate_unique_slug(db: AsyncSession, base_slug: str) -> str:
 async def get_admin_surveys(db: AsyncSession, user_id: UUID) -> list[Survey]:
     """Get all surveys created by admin with response counts"""
     stmt = (
-        select(Survey, func.count(Response.id).label('response_count'))
+        select(
+            Survey,
+            func.count(Response.id).label('response_count'),
+            func.count(Response.id).filter(Response.is_draft == False).label('completed_count')
+        )
         .outerjoin(Response)
         .where(Survey.created_by == user_id, Survey.deleted_at.is_(None))
         .group_by(Survey.id)

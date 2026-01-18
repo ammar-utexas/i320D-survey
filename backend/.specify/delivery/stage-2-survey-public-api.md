@@ -99,6 +99,7 @@ from pydantic import BaseModel, ConfigDict
 class ResponseSubmit(BaseModel):
     """Request body for submitting/updating response"""
     answers: dict  # { question_id: answer_value }
+    is_draft: bool = True  # True=auto-save, False=final submit
 
 class ResponseData(BaseModel):
     """Response data returned to user"""
@@ -149,9 +150,9 @@ def check_survey_availability(survey):
 
 ```python
 from uuid import UUID
+from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
 
 from app.models.response import Response
 
@@ -159,21 +160,39 @@ async def upsert_response(
     db: AsyncSession,
     survey_id: UUID,
     user_id: UUID,
-    answers: dict
+    answers: dict,
+    is_draft: bool = True,
 ) -> Response:
-    """Create or update response (auto-save friendly)"""
-    stmt = insert(Response).values(
-        survey_id=survey_id,
-        user_id=user_id,
-        answers=answers,
-    ).on_conflict_do_update(
-        index_elements=['survey_id', 'user_id'],
-        set_={'answers': answers, 'updated_at': datetime.utcnow()}
-    ).returning(Response)
+    """Create or update response with draft/submit handling"""
+    # Check for existing response
+    existing = await get_user_response(db, survey_id, user_id)
 
-    result = await db.execute(stmt)
-    await db.commit()
-    return result.scalar_one()
+    if existing:
+        # Update existing response
+        existing.answers = answers
+        existing.is_draft = is_draft
+        existing.updated_at = datetime.utcnow()
+
+        # Set submitted_at when transitioning from draft to submitted
+        if not is_draft and existing.submitted_at is None:
+            existing.submitted_at = datetime.utcnow()
+
+        await db.commit()
+        await db.refresh(existing)
+        return existing
+    else:
+        # Create new response
+        response = Response(
+            survey_id=survey_id,
+            user_id=user_id,
+            answers=answers,
+            is_draft=is_draft,
+            submitted_at=None if is_draft else datetime.utcnow(),
+        )
+        db.add(response)
+        await db.commit()
+        await db.refresh(response)
+        return response
 
 async def get_user_response(
     db: AsyncSession,
@@ -223,7 +242,11 @@ async def submit_response(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Submit or update survey response (upsert)"""
+    """Submit or update survey response (upsert)
+
+    - is_draft=true: Auto-save (can be updated later)
+    - is_draft=false: Final submission (sets submitted_at)
+    """
     survey = await get_survey_by_slug(db, slug)
     if not survey:
         raise HTTPException(status_code=404, detail="Survey not found")
@@ -231,7 +254,7 @@ async def submit_response(
     check_survey_availability(survey)
 
     response = await upsert_response(
-        db, survey.id, current_user.id, body.answers
+        db, survey.id, current_user.id, body.answers, body.is_draft
     )
     return response
 

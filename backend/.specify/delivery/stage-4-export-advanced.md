@@ -61,8 +61,8 @@ class ResponseListResponse(BaseModel):
     """Paginated response list"""
     items: list[ResponseListItem]
     total: int
-    page: int
-    page_size: int
+    limit: int
+    offset: int
 ```
 
 ### 4.2 Response Service (Admin)
@@ -73,7 +73,7 @@ class ResponseListResponse(BaseModel):
 from uuid import UUID
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import joinedload
 
 from app.models.response import Response
@@ -82,24 +82,47 @@ from app.models.user import User
 async def get_survey_responses(
     db: AsyncSession,
     survey_id: UUID,
-    page: int = 1,
-    page_size: int = 20,
+    limit: int = 20,
+    offset: int = 0,
+    search: str | None = None,
+    status: str | None = None,  # 'completed', 'draft', or 'all'
 ) -> tuple[list[Response], int]:
-    """Get paginated responses for a survey with user info"""
-    # Count total
-    count_stmt = select(func.count(Response.id)).where(
-        Response.survey_id == survey_id
-    )
-    total = (await db.execute(count_stmt)).scalar()
-
-    # Get page
-    stmt = (
+    """Get paginated responses for a survey with user info and filters"""
+    # Base query
+    base_query = (
         select(Response)
         .options(joinedload(Response.user))
+        .join(User, Response.user_id == User.id)
         .where(Response.survey_id == survey_id)
+    )
+
+    # Apply search filter (username or email)
+    if search:
+        search_term = f"%{search}%"
+        base_query = base_query.where(
+            or_(
+                User.github_username.ilike(search_term),
+                User.email.ilike(search_term)
+            )
+        )
+
+    # Apply status filter
+    if status == 'completed':
+        base_query = base_query.where(Response.is_draft == False)
+    elif status == 'draft':
+        base_query = base_query.where(Response.is_draft == True)
+    # 'all' or None = no filter
+
+    # Count total (with filters applied)
+    count_stmt = select(func.count()).select_from(base_query.subquery())
+    total = (await db.execute(count_stmt)).scalar()
+
+    # Apply pagination and ordering
+    stmt = (
+        base_query
         .order_by(Response.updated_at.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
+        .offset(offset)
+        .limit(limit)
     )
     result = await db.execute(stmt)
     responses = result.scalars().all()
@@ -231,30 +254,35 @@ def export_responses_csv(
 | `/surveys/{survey_id}/export` | GET | Admin | Export responses as JSON or CSV |
 
 ```python
+from typing import Literal
 from fastapi import Query
 from fastapi.responses import Response as FastAPIResponse
 
 @router.get("/{survey_id}/responses", response_model=ResponseListResponse)
 async def list_survey_responses(
     survey_id: UUID,
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    search: str | None = Query(None, min_length=1, description="Search by username or email"),
+    status: Literal['completed', 'draft', 'all'] | None = Query(None, description="Filter by response status"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_admin),
 ):
-    """List all responses for a survey with pagination"""
+    """List all responses for a survey with pagination, search, and status filter"""
     survey = await get_survey_by_id(db, survey_id)
     if not survey or survey.deleted_at:
         raise HTTPException(status_code=404, detail="Survey not found")
     if survey.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    responses, total = await get_survey_responses(db, survey_id, page, page_size)
+    responses, total = await get_survey_responses(
+        db, survey_id, limit, offset, search, status
+    )
     return {
         "items": responses,
         "total": total,
-        "page": page,
-        "page_size": page_size,
+        "limit": limit,
+        "offset": offset,
     }
 
 @router.get("/{survey_id}/export")
