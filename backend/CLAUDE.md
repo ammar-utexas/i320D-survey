@@ -90,6 +90,11 @@ from app.models.user import User
 
 ### Router Structure
 
+**Note:** Routers define their own prefix (e.g., `/surveys`). The `/api/v1` prefix is added in `main.py` when including routers:
+```python
+app.include_router(surveys.router, prefix="/api/v1")
+```
+
 ```python
 # app/routers/surveys.py
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -158,6 +163,7 @@ class Survey(Base):
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     opens_at = Column(DateTime)
     closes_at = Column(DateTime)
+    deleted_at = Column(DateTime)  # Soft delete
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -295,6 +301,7 @@ GITHUB_CLIENT_SECRET=your_dev_client_secret
 GITHUB_CALLBACK_URL=http://localhost:8000/api/v1/auth/github/callback
 JWT_SECRET=dev-secret-change-in-production
 JWT_EXPIRY_HOURS=24
+JWT_COOKIE_NAME=surveyflow_token
 FRONTEND_URL=http://localhost:5173
 ```
 

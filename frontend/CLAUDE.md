@@ -6,7 +6,7 @@
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS
 - **Routing:** React Router v6
-- **HTTP Client:** Fetch API (or axios)
+- **HTTP Client:** Fetch API (with credentials for cookies)
 - **State:** React Context + hooks
 
 ## Project Structure
@@ -71,6 +71,9 @@ frontend/
 - Hooks: `useCamelCase.js` (e.g., `useAuth.js`)
 - Utils/helpers: `camelCase.js` (e.g., `validation.js`)
 - API modules: `camelCase.js` (e.g., `surveys.js`)
+- Contexts: `PascalCase.jsx` (e.g., `AuthContext.jsx`)
+
+**Note:** Use `.jsx` for files containing JSX, `.js` for pure JavaScript modules.
 
 ### Component Structure
 
@@ -190,13 +193,23 @@ export async function apiRequest(endpoint, options = {}) {
 // api/surveys.js
 import { apiRequest } from './client';
 
+// Admin endpoints use UUID `id`
 export const surveysApi = {
   list: () => apiRequest('/surveys'),
   get: (id) => apiRequest(`/surveys/${id}`),
   create: (data) => apiRequest('/surveys', { method: 'POST', body: data }),
   update: (id, data) => apiRequest(`/surveys/${id}`, { method: 'PATCH', body: data }),
   delete: (id) => apiRequest(`/surveys/${id}`, { method: 'DELETE' }),
+  duplicate: (id) => apiRequest(`/surveys/${id}/duplicate`, { method: 'POST' }),
+  getResponses: (id) => apiRequest(`/surveys/${id}/responses`),
   export: (id, format) => apiRequest(`/surveys/${id}/export?format=${format}`),
+};
+
+// api/responses.js - Public endpoints use `slug`
+export const responsesApi = {
+  getSurvey: (slug) => apiRequest(`/surveys/${slug}/public`),
+  submit: (slug, data) => apiRequest(`/surveys/${slug}/respond`, { method: 'POST', body: data }),
+  getMyResponse: (slug) => apiRequest(`/surveys/${slug}/my-response`),
 };
 ```
 

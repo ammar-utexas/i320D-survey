@@ -59,6 +59,7 @@ Base URL: `/api/v1`
 | GET | `/surveys/{survey_id}` | Get survey details | Yes (Admin) |
 | PATCH | `/surveys/{survey_id}` | Update survey metadata | Yes (Admin) |
 | DELETE | `/surveys/{survey_id}` | Soft-delete survey | Yes (Admin) |
+| POST | `/surveys/{survey_id}/duplicate` | Duplicate survey | Yes (Admin) |
 | GET | `/surveys/{survey_id}/responses` | List all responses | Yes (Admin) |
 | GET | `/surveys/{survey_id}/export?format=csv|json` | Export responses | Yes (Admin) |
 
@@ -75,6 +76,11 @@ Base URL: `/api/v1`
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
+
+### URL Parameter Conventions
+
+- **`{survey_id}`** - UUID, used for admin operations (owner access)
+- **`{slug}`** - URL-safe string, used for public/respondent access
 
 ## Data Models
 
@@ -103,6 +109,7 @@ Base URL: `/api/v1`
   "created_by": "uuid (user.id)",
   "opens_at": "timestamp (nullable)",
   "closes_at": "timestamp (nullable)",
+  "deleted_at": "timestamp (nullable, for soft delete)",
   "created_at": "timestamp",
   "updated_at": "timestamp"
 }
@@ -115,6 +122,7 @@ Base URL: `/api/v1`
   "survey_id": "uuid",
   "user_id": "uuid",
   "answers": "jsonb",
+  "is_draft": "boolean (true=auto-saved, false=submitted)",
   "submitted_at": "timestamp",
   "updated_at": "timestamp"
 }
@@ -177,9 +185,10 @@ Surveys are defined in JSON with this structure:
 GITHUB_CLIENT_ID=xxx
 GITHUB_CLIENT_SECRET=xxx
 GITHUB_CALLBACK_URL=https://backend.railway.app/api/v1/auth/github/callback
-DATABASE_URL=postgresql://...
+DATABASE_URL=postgresql+asyncpg://user:pass@host/dbname
 JWT_SECRET=long-random-string
 JWT_EXPIRY_HOURS=24
+JWT_COOKIE_NAME=surveyflow_token
 FRONTEND_URL=https://frontend.vercel.app
 ALLOWED_GITHUB_ORGS=org1,org2  # Optional
 ```
