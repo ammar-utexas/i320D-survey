@@ -328,6 +328,132 @@ GET /surveys/{id}/export?format=json|csv&from_date=YYYY-MM-DD&to_date=YYYY-MM-DD
 
 ---
 
+### 6. Frontend API Missing `is_draft` Parameter
+
+**Priority**: P0 (Blocks Stage 3)
+**Affected Stage**: Stage 2, Stage 3 - Frontend code
+
+#### Problem
+
+Frontend stage documents show API calls without the `is_draft` parameter:
+
+**Stage 2** (`src/api/surveys.js`):
+```js
+respond: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
+  method: 'POST',
+  body: { answers },  // Missing is_draft
+}),
+```
+
+**Stage 3** (`src/api/responses.js`):
+```js
+submit: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
+  method: 'POST',
+  body: { answers },  // Missing is_draft
+}),
+```
+
+#### Solution
+
+**Update Frontend API** to include `is_draft`:
+
+```js
+// Stage 2 - Basic submission (always final)
+respond: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
+  method: 'POST',
+  body: { answers, is_draft: false },
+}),
+
+// Stage 3 - Auto-save (draft) vs Submit (final)
+save: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
+  method: 'POST',
+  body: { answers, is_draft: true },
+}),
+
+submit: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
+  method: 'POST',
+  body: { answers, is_draft: false },
+}),
+```
+
+---
+
+### 7. Export Parameter Name Mismatch
+
+**Priority**: P1 (Stage 5)
+**Affected Stage**: Stage 5 - Admin Advanced Features
+
+#### Problem
+
+Frontend uses camelCase, backend uses snake_case:
+
+| Frontend | Backend |
+|----------|---------|
+| `startDate` | `from_date` |
+| `endDate` | `to_date` |
+
+#### Solution
+
+**Update Frontend Stage 5** to use backend parameter names:
+
+```js
+// Before
+options: { startDate, endDate, anonymize }
+
+// After
+options: { from_date, to_date, anonymize }
+```
+
+Or transform in the API call:
+```js
+export: async (id, format, options = {}) => {
+  const params = new URLSearchParams({
+    format,
+    ...(options.startDate && { from_date: options.startDate }),
+    ...(options.endDate && { to_date: options.endDate }),
+    ...(options.anonymize && { anonymize: options.anonymize }),
+  });
+  // ...
+}
+```
+
+---
+
+### 8. Duplicate Endpoint Missing from Frontend API
+
+**Priority**: P1 (Stage 5)
+**Affected Stage**: Stage 5 - Admin Advanced Features
+
+#### Problem
+
+Stage 5 notes uncertainty about duplicate endpoint:
+> "Note: Backend may need a duplicate endpoint, or frontend fetches config and re-creates."
+
+Backend PRD (BE-ADMIN-08) already defines:
+> `POST /surveys/{id}/duplicate` - Clone config with new slug/title
+
+Frontend API module doesn't include this endpoint.
+
+#### Solution
+
+**Add to Frontend API** (`src/api/surveys.js`):
+
+```js
+export const surveysApi = {
+  // ... existing methods
+
+  // Duplicate survey
+  duplicate: (id, newTitle) => apiRequest(`/surveys/${id}/duplicate`, {
+    method: 'POST',
+    body: { title: newTitle },
+  }),
+};
+```
+
+**Update Stage 5** to use this endpoint instead of manual fetch-and-recreate.
+
+---
+
 ## Migration Checklist
 
 ### Database Migrations
@@ -351,7 +477,7 @@ def downgrade():
     op.drop_column('responses', 'is_draft')
 ```
 
-### Code Changes
+### Code Changes (Backend)
 
 - [ ] `app/models/response.py` - Add `is_draft` field
 - [ ] `app/schemas/response.py` - Add `is_draft` to schemas, add `ResponseWithUser`
@@ -359,6 +485,12 @@ def downgrade():
 - [ ] `app/routers/surveys.py` - Update list query with counts
 - [ ] `app/routers/responses.py` - Add `search`, `status` query params
 - [ ] `app/routers/surveys.py` (export) - Document query params
+
+### Code Changes (Frontend Stages)
+
+- [ ] `frontend/.specify/delivery/stage-2-question-components.md` - Add `is_draft: false` to respond API
+- [ ] `frontend/.specify/delivery/stage-3-response-features.md` - Split into `save` (draft) and `submit` (final) API calls
+- [ ] `frontend/.specify/delivery/stage-5-admin-advanced.md` - Fix export param names, add duplicate endpoint
 
 ### Documentation Updates
 
@@ -401,12 +533,15 @@ Returns: File download
 ## Implementation Order
 
 1. **Phase 1** (Unblocks Stage 3 & 4):
-   - Add `is_draft` field and migration
-   - Add `response_count` to survey list
+   - Add `is_draft` field and migration (Backend)
+   - Add `response_count` to survey list (Backend)
+   - Update Stage 2 & 3 API calls with `is_draft` (Frontend)
 
 2. **Phase 2** (Unblocks Stage 5):
-   - Add search/status filters to responses endpoint
-   - Document export parameters
+   - Add search/status filters to responses endpoint (Backend)
+   - Document export parameters (Backend)
+   - Fix export param names in Stage 5 (Frontend)
+   - Add duplicate endpoint to Stage 5 API (Frontend)
 
 3. **Phase 3** (Cleanup):
    - Sync all documentation

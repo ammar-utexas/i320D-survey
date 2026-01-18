@@ -20,7 +20,7 @@ Enhance the survey response experience with auto-save, progress tracking, valida
 - "Saving..." indicator during save
 - "All changes saved" confirmation
 - Handle offline/error gracefully
-- Use upsert endpoint (POST creates or updates)
+- Use upsert endpoint with `is_draft: true` for auto-save
 
 ```jsx
 // Hook interface
@@ -28,6 +28,9 @@ const { saving, lastSaved, error } = useAutoSave(slug, answers, {
   debounceMs: 2000,
   enabled: true,
 });
+
+// Internal implementation uses saveDraft (is_draft: true)
+// Final submit button uses submit (is_draft: false)
 ```
 
 ### 3.2 Auto-Save Indicator Component
@@ -53,13 +56,17 @@ States to display:
 **Requirements** (FE-RESP-05):
 - Fetch user's response on page load via `GET /surveys/:slug/my-response`
 - Pre-fill form with saved answers
-- Show "Update Response" vs "Submit" button based on existing response
-- Display last saved timestamp
+- Show button based on `is_draft` status:
+  - `is_draft: true` (or no response) → "Submit Survey" button
+  - `is_draft: false` → "Update Response" button
+- Display last saved timestamp from `updated_at`
 
-```js
-// API module
-export const responsesApi = {
-  getMyResponse: (slug) => apiRequest(`/surveys/${slug}/my-response`),
+```jsx
+// Button logic based on response status
+const getSubmitButtonText = (existingResponse) => {
+  if (!existingResponse) return 'Submit Survey';
+  if (existingResponse.is_draft) return 'Submit Survey';
+  return 'Update Response';
 };
 ```
 
@@ -174,13 +181,27 @@ Handle survey availability:
 import { apiRequest } from './client';
 
 export const responsesApi = {
+  // Get user's existing response (includes is_draft status)
   getMyResponse: (slug) => apiRequest(`/surveys/${slug}/my-response`),
+
+  // Auto-save as draft (is_draft: true)
+  saveDraft: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
+    method: 'POST',
+    body: { answers, is_draft: true },
+  }),
+
+  // Final submission (is_draft: false)
   submit: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
     method: 'POST',
-    body: { answers },
+    body: { answers, is_draft: false },
   }),
 };
 ```
+
+**Response includes**:
+- `is_draft: boolean` - Whether response is a draft or final submission
+- `submitted_at: timestamp | null` - Set when `is_draft` becomes `false`
+- `updated_at: timestamp` - Last modification time
 
 ## Acceptance Criteria
 

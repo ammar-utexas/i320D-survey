@@ -17,9 +17,12 @@ Complete the admin experience with response viewing, data export, and full surve
 
 **Requirements** (FE-ADMIN-05):
 - Table columns: Avatar, Username, Email, Status, Submitted At
-- Status values: Completed, In Progress, Not Started
-- Pagination controls
-- Search/filter by username
+- Status values derived from `is_draft` field:
+  - **Completed**: `is_draft: false` (has `submitted_at`)
+  - **In Progress**: `is_draft: true` (draft saved but not submitted)
+  - **Not Started**: No response record exists for user
+- Pagination controls (limit, offset)
+- Search/filter by username via `?search=` query param
 
 **Props**:
 ```jsx
@@ -97,8 +100,11 @@ export: async (id, format) => {
 <ExportOptions
   onExport={(format, options) => handleExport(format, options)}
 />
-// options: { startDate, endDate, anonymize }
+// options use backend parameter names:
+// { from_date: 'YYYY-MM-DD', to_date: 'YYYY-MM-DD', anonymize: boolean }
 ```
+
+**Note**: Backend uses snake_case parameter names (`from_date`, `to_date`), not camelCase.
 
 ### 5.6 Survey Edit Functionality
 
@@ -141,10 +147,18 @@ delete: (id) => apiRequest(`/surveys/${id}`, { method: 'DELETE' }),
 **Requirements** (FE-ADMIN-08):
 - Duplicate button on survey card
 - Prompt for new survey title (modal or inline)
-- Create new survey with same config
+- Call `POST /surveys/{id}/duplicate` endpoint
 - Navigate to new survey after creation
 
-Note: Backend may need a duplicate endpoint, or frontend fetches config and re-creates.
+**API**:
+```js
+duplicate: (id, newTitle) => apiRequest(`/surveys/${id}/duplicate`, {
+  method: 'POST',
+  body: { title: newTitle },
+}),
+```
+
+**Note**: Backend endpoint `POST /surveys/{id}/duplicate` clones config with new slug/title, clears dates, and sets new `created_by`.
 
 ### 5.9 Modal Component
 
@@ -214,15 +228,21 @@ export const surveysApi = {
   create: (config) => apiRequest('/surveys', { method: 'POST', body: config }),
   update: (id, data) => apiRequest(`/surveys/${id}`, { method: 'PATCH', body: data }),
   delete: (id) => apiRequest(`/surveys/${id}`, { method: 'DELETE' }),
+  duplicate: (id, newTitle) => apiRequest(`/surveys/${id}/duplicate`, {
+    method: 'POST',
+    body: { title: newTitle },
+  }),
 
-  // Admin - Responses
+  // Admin - Responses (supports search, status, pagination)
   getResponses: (id, params) => {
+    // params: { limit, offset, search, status }
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/surveys/${id}/responses?${query}`);
   },
 
-  // Admin - Export
+  // Admin - Export (uses snake_case param names)
   export: async (id, format, options = {}) => {
+    // options: { from_date, to_date, anonymize }
     const params = new URLSearchParams({ format, ...options });
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/surveys/${id}/export?${params}`,

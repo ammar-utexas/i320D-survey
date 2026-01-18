@@ -178,12 +178,16 @@ Groups questions by vector (FE-RESP-02):
 ```js
 export const surveysApi = {
   getPublic: (slug) => apiRequest(`/surveys/${slug}/public`),
-  respond: (slug, answers) => apiRequest(`/surveys/${slug}/respond`, {
+  respond: (slug, answers, isDraft = false) => apiRequest(`/surveys/${slug}/respond`, {
     method: 'POST',
-    body: { answers },
+    body: { answers, is_draft: isDraft },
   }),
 };
 ```
+
+**Note**: The `is_draft` parameter distinguishes between:
+- `is_draft: true` - Auto-save (partial response, can be updated)
+- `is_draft: false` - Final submission (marks response as complete)
 
 ## Acceptance Criteria
 
