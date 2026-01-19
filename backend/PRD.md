@@ -52,7 +52,7 @@ The SurveyFlow backend is a FastAPI application that provides REST API endpoints
 | BE-ADMIN-02 | P0 | Validate JSON schema on upload | - Validate against survey JSON schema<br>- Return 422 with structured errors on failure<br>- Include field path and error message |
 | BE-ADMIN-03 | P0 | Generate unique shareable survey URL | - Generate URL-safe slug from title<br>- Ensure uniqueness (append number if needed)<br>- Return full URL in response |
 | BE-ADMIN-04 | P1 | Store and enforce survey open/close dates | - Accept opens_at, closes_at in create/update<br>- Return 403 for responses outside date range<br>- Include is_open boolean in survey response |
-| BE-ADMIN-05 | P1 | List respondents with completion status | - GET /surveys/{id}/responses returns list<br>- Include: user info, status, submitted_at<br>- Support pagination (limit, offset) |
+| BE-ADMIN-05 | P1 | List respondents with completion status | - GET /surveys/{id}/responses returns list<br>- Include: user info, is_draft, submitted_at<br>- Support pagination (limit, offset)<br>- Support search by username/email<br>- Support status filter (completed, draft, all) |
 | BE-ADMIN-06 | P1 | Export responses as JSON or CSV | - GET /surveys/{id}/export?format=json\|csv<br>- JSON: array of full response objects<br>- CSV: flattened with one row per respondent<br>- Set appropriate Content-Type and Content-Disposition |
 | BE-ADMIN-07 | P2 | Update survey metadata | - PATCH /surveys/{id} accepts title, description<br>- Do not allow config changes<br>- Return updated survey |
 | BE-ADMIN-08 | P2 | Duplicate survey | - POST /surveys/{id}/duplicate<br>- Clone config with new slug/title<br>- Clear dates, set new created_by |
@@ -65,8 +65,8 @@ The SurveyFlow backend is a FastAPI application that provides REST API endpoints
 | BE-RESP-01 | P0 | Serve survey config for rendering | - GET /surveys/{slug}/public returns config<br>- No auth required for survey metadata<br>- Include title, description, vectors, questions |
 | BE-RESP-02 | P0 | N/A - Config structure defines vectors | - Serve config as-is from database |
 | BE-RESP-03 | P0 | Server-side validation on submission | - POST /surveys/{slug}/respond validates all answers<br>- Check required fields<br>- Return 422 with field-level errors |
-| BE-RESP-04 | P1 | Upsert responses (create or update) | - POST creates new or updates existing<br>- Accept partial responses for auto-save<br>- Return updated_at timestamp |
-| BE-RESP-05 | P1 | Return user's existing response | - GET /surveys/{slug}/my-response<br>- Return 404 if no response exists<br>- Check closes_at before accepting updates |
+| BE-RESP-04 | P1 | Upsert responses (create or update) | - POST creates new or updates existing<br>- Accept `is_draft` parameter (true=auto-save, false=submit)<br>- Set submitted_at when is_draft transitions to false<br>- Return updated response with timestamps |
+| BE-RESP-05 | P1 | Return user's existing response | - GET /surveys/{slug}/my-response<br>- Return null if no response exists (not 404)<br>- Check closes_at before accepting updates |
 | BE-RESP-06 | P1 | N/A - Frontend only | - |
 | BE-RESP-07 | P2 | N/A - Frontend only | - |
 | BE-RESP-08 | P2 | N/A - Frontend only | - |
@@ -181,7 +181,9 @@ class Response(Base):
     survey_id: UUID (FK -> surveys.id)
     user_id: UUID (FK -> users.id)
     answers: JSONB
-    submitted_at: DateTime
+    is_draft: Boolean (default: True)  # True=auto-saved, False=submitted
+    submitted_at: DateTime (nullable)  # Set when is_draft becomes False
+    created_at: DateTime
     updated_at: DateTime
 
     # Unique constraint on (survey_id, user_id)
@@ -226,6 +228,7 @@ All error responses follow this format:
 | GITHUB_CALLBACK_URL | Yes | Full callback URL |
 | JWT_SECRET | Yes | Secret for signing JWTs |
 | JWT_EXPIRY_HOURS | No | Token expiry (default: 24) |
+| JWT_COOKIE_NAME | No | Cookie name (default: surveyflow_token) |
 | FRONTEND_URL | Yes | Frontend URL for CORS and redirects |
 | ALLOWED_GITHUB_ORGS | No | Comma-separated org names |
 
