@@ -1,0 +1,230 @@
+openapi: 3.1.0
+info:
+  title: SurveyFlow Auth API
+  description: Authentication endpoints for GitHub OAuth and session management
+  version: 1.0.0
+  contact:
+    name: SurveyFlow Team
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: https://backend.railway.app/api/v1
+    description: Production (Railway)
+
+tags:
+  - name: auth
+    description: Authentication and session management
+  - name: health
+    description: Service health checks
+
+paths:
+  /health:
+    get:
+      tags:
+        - health
+      summary: Health check
+      description: Verify the service is running and responsive
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /auth/github:
+    get:
+      tags:
+        - auth
+      summary: Initiate GitHub OAuth
+      description: |
+        Redirects the user to GitHub's OAuth authorization page.
+        After authorization, GitHub redirects back to /auth/github/callback.
+      operationId: initiateGitHubOAuth
+      responses:
+        "302":
+          description: Redirect to GitHub OAuth
+          headers:
+            Location:
+              description: GitHub authorization URL with client_id and state
+              schema:
+                type: string
+                format: uri
+                example: https://github.com/login/oauth/authorize?client_id=xxx&state=yyy
+
+  /auth/github/callback:
+    get:
+      tags:
+        - auth
+      summary: Handle GitHub OAuth callback
+      description: |
+        Handles the OAuth callback from GitHub. Exchanges the authorization code
+        for an access token, fetches user profile, creates/updates user record,
+        and issues JWT in HTTP-only cookie.
+      operationId: handleGitHubCallback
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Authorization code from GitHub
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          description: CSRF state parameter (must match initiated state)
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to frontend with session cookie
+          headers:
+            Location:
+              description: Frontend URL
+              schema:
+                type: string
+                format: uri
+            Set-Cookie:
+              description: JWT session token in HTTP-only cookie
+              schema:
+                type: string
+                example: surveyflow_token=eyJ...; HttpOnly; Secure; SameSite=Lax; Max-Age=86400
+        "302 (error)":
+          description: Redirect to frontend with error parameter
+          headers:
+            Location:
+              description: Frontend URL with error query parameter
+              schema:
+                type: string
+                format: uri
+                example: https://frontend.example.com?error=oauth_failed&reason=invalid_code
+
+  /auth/me:
+    get:
+      tags:
+        - auth
+      summary: Get current user
+      description: Returns the profile of the currently authenticated user
+      operationId: getCurrentUser
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                detail: Not authenticated
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Logout
+      description: Terminates the user session by clearing the JWT cookie
+      operationId: logout
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successfully logged out
+          headers:
+            Set-Cookie:
+              description: Cleared session cookie
+              schema:
+                type: string
+                example: surveyflow_token=; HttpOnly; Secure; SameSite=Lax; Max-Age=0
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+              example:
+                message: Successfully logged out
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: surveyflow_token
+      description: JWT token stored in HTTP-only cookie
+
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - healthy
+          example: healthy
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - github_username
+        - is_admin
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Internal user identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        github_username:
+          type: string
+          description: GitHub login name
+          example: octocat
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: Email from GitHub profile (null if private)
+          example: octocat@github.com
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL to GitHub avatar
+          example: https://avatars.githubusercontent.com/u/583231
+        is_admin:
+          type: boolean
+          description: Whether user has admin privileges
+          example: false
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Operation successful
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: Not authenticated
