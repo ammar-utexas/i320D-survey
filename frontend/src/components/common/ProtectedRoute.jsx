@@ -1,18 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { useAuth } from '../../hooks/useAuth';
 import Spinner from './Spinner';
 
-/**
- * Route wrapper that requires authentication
- * Shows loading spinner while checking auth, redirects to login if not authenticated
- */
 export default function ProtectedRoute({ adminOnly = false }) {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex justify-center items-center min-h-screen">
         <Spinner size="lg" />
       </div>
     );
@@ -28,7 +23,3 @@ export default function ProtectedRoute({ adminOnly = false }) {
 
   return <Outlet />;
 }
-
-ProtectedRoute.propTypes = {
-  adminOnly: PropTypes.bool,
-};
