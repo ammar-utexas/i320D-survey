@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
@@ -27,6 +28,9 @@ class User(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
     )
+
+    surveys = relationship("Survey", back_populates="creator", cascade="all, delete-orphan")
+    responses = relationship("Response", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<User {self.github_username}>"

@@ -19,7 +19,9 @@ app.add_middleware(
 )
 
 # Register routers
-from app.routers import auth, health
+from app.routers import auth, health, responses, surveys
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(surveys.router, prefix="/api/v1")
+app.include_router(responses.router, prefix="/api/v1")

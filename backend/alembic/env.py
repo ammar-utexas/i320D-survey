@@ -11,6 +11,8 @@ from app.database import Base
 
 # Import all models so Alembic can detect them
 from app.models.user import User  # noqa: F401
+from app.models.survey import Survey  # noqa: F401
+from app.models.response import Response  # noqa: F401
 
 # Alembic Config object
 config = context.config
