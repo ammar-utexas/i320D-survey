@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { surveysApi } from '../api/surveys';
 import SurveyList from '../components/admin/SurveyList';
@@ -26,6 +26,24 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchSurveys();
+  }, []);
+
+  // Handle survey update (edit)
+  const handleSurveyUpdate = useCallback((updatedSurvey) => {
+    setSurveys((prev) =>
+      prev.map((s) => (s.id === updatedSurvey.id ? updatedSurvey : s))
+    );
+  }, []);
+
+  // Handle survey delete
+  const handleSurveyDelete = useCallback((deletedId) => {
+    setSurveys((prev) => prev.filter((s) => s.id !== deletedId));
+  }, []);
+
+  // Handle survey duplicate (just refresh list since user navigates away)
+  const handleSurveyDuplicate = useCallback(() => {
+    // The DuplicateModal navigates to the new survey, so no action needed here
+    // But we could refresh if needed
   }, []);
 
   if (loading) {
@@ -75,7 +93,12 @@ export default function AdminDashboard() {
       {surveys.length === 0 ? (
         <EmptyState />
       ) : (
-        <SurveyList surveys={surveys} />
+        <SurveyList
+          surveys={surveys}
+          onUpdate={handleSurveyUpdate}
+          onDelete={handleSurveyDelete}
+          onDuplicate={handleSurveyDuplicate}
+        />
       )}
     </div>
   );

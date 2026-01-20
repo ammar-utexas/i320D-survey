@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function OpenTextQuestion({ question, value, onChange, error }) {
   const maxLength = 1000;
   const currentLength = (value || '').length;
@@ -22,3 +24,14 @@ export default function OpenTextQuestion({ question, value, onChange, error }) {
     </div>
   );
 }
+
+OpenTextQuestion.propTypes = {
+  question: PropTypes.shape({
+    question_id: PropTypes.string.isRequired,
+    question: PropTypes.string.isRequired,
+    required: PropTypes.bool,
+  }).isRequired,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.string,
+};

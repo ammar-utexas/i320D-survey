@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { formatDateTimeLocal } from '../../utils/formatters';
 
 export default function DateTimePicker({
@@ -55,3 +56,12 @@ export default function DateTimePicker({
     </div>
   );
 }
+
+DateTimePicker.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  minDate: PropTypes.string,
+  error: PropTypes.string,
+  disabled: PropTypes.bool,
+};

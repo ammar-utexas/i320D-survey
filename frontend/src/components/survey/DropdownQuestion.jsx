@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function DropdownQuestion({ question, value, onChange, error }) {
   const options = question.options || [];
 
@@ -21,3 +23,15 @@ export default function DropdownQuestion({ question, value, onChange, error }) {
     </select>
   );
 }
+
+DropdownQuestion.propTypes = {
+  question: PropTypes.shape({
+    question_id: PropTypes.string.isRequired,
+    question: PropTypes.string.isRequired,
+    options: PropTypes.arrayOf(PropTypes.string),
+    required: PropTypes.bool,
+  }).isRequired,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.string,
+};

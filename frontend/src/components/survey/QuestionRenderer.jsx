@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import ScaleQuestion from './ScaleQuestion';
 import SingleChoiceQuestion from './SingleChoiceQuestion';
 import MultiCheckboxQuestion from './MultiCheckboxQuestion';
@@ -34,3 +35,17 @@ export default function QuestionRenderer({ question, value, onChange, error }) {
     />
   );
 }
+
+QuestionRenderer.propTypes = {
+  question: PropTypes.shape({
+    question_id: PropTypes.string.isRequired,
+    question: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    options: PropTypes.arrayOf(PropTypes.string),
+    text_prompt: PropTypes.string,
+    required: PropTypes.bool,
+  }).isRequired,
+  value: PropTypes.any,
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.string,
+};

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import PropTypes from 'prop-types';
 
 export default function FileUpload({ onFileSelect, disabled = false }) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -132,3 +133,8 @@ export default function FileUpload({ onFileSelect, disabled = false }) {
     </div>
   );
 }
+
+FileUpload.propTypes = {
+  onFileSelect: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+};

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { copyToClipboard } from '../../utils/clipboard';
 
 export default function SurveyUrlCopy({ slug, className = '' }) {
@@ -45,3 +46,8 @@ export default function SurveyUrlCopy({ slug, className = '' }) {
     </div>
   );
 }
+
+SurveyUrlCopy.propTypes = {
+  slug: PropTypes.string.isRequired,
+  className: PropTypes.string,
+};

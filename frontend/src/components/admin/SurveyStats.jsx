@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function SurveyStats({ stats }) {
   const items = [
     {
@@ -56,3 +58,11 @@ export default function SurveyStats({ stats }) {
     </div>
   );
 }
+
+SurveyStats.propTypes = {
+  stats: PropTypes.shape({
+    total: PropTypes.number,
+    completed: PropTypes.number,
+    in_progress: PropTypes.number,
+  }).isRequired,
+};

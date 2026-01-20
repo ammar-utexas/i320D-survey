@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function QuestionError({ error }) {
   if (!error) return null;
 
@@ -7,3 +9,7 @@ export default function QuestionError({ error }) {
     </p>
   );
 }
+
+QuestionError.propTypes = {
+  error: PropTypes.string,
+};

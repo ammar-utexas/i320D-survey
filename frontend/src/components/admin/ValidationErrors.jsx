@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function ValidationErrors({ errors }) {
   if (!errors || errors.length === 0) return null;
 
@@ -42,3 +44,18 @@ export default function ValidationErrors({ errors }) {
     </div>
   );
 }
+
+ValidationErrors.propTypes = {
+  errors: PropTypes.oneOfType([
+    PropTypes.arrayOf(
+      PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.shape({
+          msg: PropTypes.string,
+          message: PropTypes.string,
+        }),
+      ])
+    ),
+    PropTypes.string,
+  ]),
+};

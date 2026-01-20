@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function ScaleQuestion({ question, value, onChange, error }) {
   const scales = [1, 2, 3, 4, 5];
 
@@ -32,3 +34,15 @@ export default function ScaleQuestion({ question, value, onChange, error }) {
     </div>
   );
 }
+
+ScaleQuestion.propTypes = {
+  question: PropTypes.shape({
+    question_id: PropTypes.string.isRequired,
+    question: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    required: PropTypes.bool,
+  }).isRequired,
+  value: PropTypes.number,
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.string,
+};

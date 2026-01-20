@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function SingleChoiceWithTextQuestion({ question, value, onChange, error }) {
   const options = question.options || [];
   const currentValue = value || { choice: '', text: '' };
@@ -64,3 +66,19 @@ export default function SingleChoiceWithTextQuestion({ question, value, onChange
     </div>
   );
 }
+
+SingleChoiceWithTextQuestion.propTypes = {
+  question: PropTypes.shape({
+    question_id: PropTypes.string.isRequired,
+    question: PropTypes.string.isRequired,
+    options: PropTypes.arrayOf(PropTypes.string),
+    text_prompt: PropTypes.string,
+    required: PropTypes.bool,
+  }).isRequired,
+  value: PropTypes.shape({
+    choice: PropTypes.string,
+    text: PropTypes.string,
+  }),
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.string,
+};

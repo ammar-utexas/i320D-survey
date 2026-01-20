@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import SurveySection from './SurveySection';
 import Button from '../common/Button';
 import { validateForm, hasErrors, getFirstErrorId } from '../../utils/validation';
@@ -98,3 +99,23 @@ export default function SurveyForm({
     </form>
   );
 }
+
+SurveyForm.propTypes = {
+  survey: PropTypes.shape({
+    survey_title: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    vectors: PropTypes.arrayOf(
+      PropTypes.shape({
+        vector_id: PropTypes.string.isRequired,
+        vector_name: PropTypes.string.isRequired,
+        questions: PropTypes.array,
+      })
+    ),
+  }),
+  initialAnswers: PropTypes.object,
+  onSubmit: PropTypes.func,
+  onAnswerChange: PropTypes.func,
+  submitting: PropTypes.bool,
+  submitLabel: PropTypes.string,
+};

@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function MultiCheckboxQuestion({ question, value, onChange, error }) {
   const options = question.options || [];
   const selectedValues = Array.isArray(value) ? value : [];
@@ -38,3 +40,15 @@ export default function MultiCheckboxQuestion({ question, value, onChange, error
     </div>
   );
 }
+
+MultiCheckboxQuestion.propTypes = {
+  question: PropTypes.shape({
+    question_id: PropTypes.string.isRequired,
+    question: PropTypes.string.isRequired,
+    options: PropTypes.arrayOf(PropTypes.string),
+    required: PropTypes.bool,
+  }).isRequired,
+  value: PropTypes.arrayOf(PropTypes.string),
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.string,
+};

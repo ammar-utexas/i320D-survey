@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { surveysApi } from '../../api/surveys';
 
 export default function ExportDropdown({ surveyId, surveySlug }) {
@@ -104,3 +105,8 @@ export default function ExportDropdown({ surveyId, surveySlug }) {
     </div>
   );
 }
+
+ExportDropdown.propTypes = {
+  surveyId: PropTypes.string.isRequired,
+  surveySlug: PropTypes.string.isRequired,
+};

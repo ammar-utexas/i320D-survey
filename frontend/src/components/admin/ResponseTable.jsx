@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { formatDateTime } from '../../utils/formatters';
 
 const PAGE_SIZES = [10, 25, 50];
@@ -186,3 +187,20 @@ export default function ResponseTable({ responses, loading }) {
     </div>
   );
 }
+
+ResponseTable.propTypes = {
+  responses: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      is_draft: PropTypes.bool,
+      submitted_at: PropTypes.string,
+      user: PropTypes.shape({
+        id: PropTypes.string,
+        github_username: PropTypes.string,
+        email: PropTypes.string,
+        avatar_url: PropTypes.string,
+      }),
+    })
+  ).isRequired,
+  loading: PropTypes.bool,
+};

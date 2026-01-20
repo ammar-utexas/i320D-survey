@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { formatRelativeTime } from '../../utils/formatters';
 
 export default function AutoSaveIndicator({ status, lastSaved }) {
@@ -40,3 +41,8 @@ export default function AutoSaveIndicator({ status, lastSaved }) {
     </div>
   );
 }
+
+AutoSaveIndicator.propTypes = {
+  status: PropTypes.oneOf(['idle', 'saving', 'saved', 'error']),
+  lastSaved: PropTypes.string,
+};

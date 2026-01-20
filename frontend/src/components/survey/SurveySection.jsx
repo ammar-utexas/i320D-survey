@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import QuestionRenderer from './QuestionRenderer';
 import QuestionError from './QuestionError';
 
@@ -46,3 +47,21 @@ export default function SurveySection({ vector, answers, errors, onAnswerChange 
     </section>
   );
 }
+
+SurveySection.propTypes = {
+  vector: PropTypes.shape({
+    vector_id: PropTypes.string.isRequired,
+    vector_name: PropTypes.string.isRequired,
+    questions: PropTypes.arrayOf(
+      PropTypes.shape({
+        question_id: PropTypes.string.isRequired,
+        question: PropTypes.string.isRequired,
+        type: PropTypes.string.isRequired,
+        required: PropTypes.bool,
+      })
+    ),
+  }).isRequired,
+  answers: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
+  onAnswerChange: PropTypes.func.isRequired,
+};
