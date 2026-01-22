@@ -120,7 +120,7 @@ export default function SurveyRespond() {
     );
   }
 
-  // Submitted success state
+  // Submitted success state (just submitted now)
   if (submitted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -135,16 +135,38 @@ export default function SurveyRespond() {
             Your response has been submitted successfully.
           </p>
           <p className="text-sm text-gray-500">
-            You can close this page or return to update your response.
+            You can close this page now.
           </p>
         </div>
       </div>
     );
   }
 
-  // Get initial answers from existing response
+  // Already submitted state (returning to a completed survey)
+  const alreadySubmitted = existingResponse && !existingResponse.is_draft;
+  if (alreadySubmitted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md text-center">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6">
+            <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Already Submitted</h2>
+          <p className="text-gray-600 mb-6">
+            You have already submitted your response to this survey.
+          </p>
+          <p className="text-sm text-gray-500">
+            Submitted on {new Date(existingResponse.submitted_at).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get initial answers from existing response (draft only at this point)
   const initialAnswers = existingResponse?.answers || {};
-  const isUpdate = existingResponse && !existingResponse.is_draft;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -198,7 +220,7 @@ export default function SurveyRespond() {
           onSubmit={handleSubmit}
           onAnswerChange={handleAnswerChange}
           submitting={submitting}
-          submitLabel={isUpdate ? 'Update Response' : 'Submit Survey'}
+          submitLabel="Submit Survey"
         />
       </div>
     </div>

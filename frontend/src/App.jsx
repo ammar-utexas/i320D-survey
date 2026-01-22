@@ -7,6 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import SurveyCreate from './pages/SurveyCreate';
 import SurveyResults from './pages/SurveyResults';
 import SurveyRespond from './pages/SurveyRespond';
+import RespondentHome from './pages/RespondentHome';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -15,12 +16,13 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          {/* Survey response route - requires auth but no admin layout */}
+          {/* Respondent home - requires auth but not admin */}
           <Route element={<ProtectedRoute />}>
+            <Route path="/home" element={<RespondentHome />} />
             <Route path="/s/:slug" element={<SurveyRespond />} />
           </Route>
           {/* Admin routes with layout */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute adminOnly />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<AdminDashboard />} />

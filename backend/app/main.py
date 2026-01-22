@@ -23,5 +23,6 @@ from app.routers import auth, health, responses, surveys
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
-app.include_router(surveys.router, prefix="/api/v1")
+# responses router must come before surveys to handle /surveys/active before /surveys/{survey_id}
 app.include_router(responses.router, prefix="/api/v1")
+app.include_router(surveys.router, prefix="/api/v1")

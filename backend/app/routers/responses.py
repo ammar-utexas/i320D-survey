@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -42,6 +42,49 @@ def is_survey_open(survey: Survey) -> bool:
         return False
 
     return True
+
+
+@router.get("/active", response_model=list[SurveyPublicResponse])
+async def get_active_surveys(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[SurveyPublicResponse]:
+    """Get all currently active surveys for respondents that they haven't submitted yet."""
+    now = datetime.utcnow()
+
+    # Subquery to find survey IDs where user has submitted (non-draft) response
+    submitted_survey_ids = (
+        select(Response.survey_id)
+        .where(
+            Response.user_id == current_user.id,
+            Response.is_draft.is_(False),
+        )
+        .scalar_subquery()
+    )
+
+    result = await db.execute(
+        select(Survey).where(
+            Survey.deleted_at.is_(None),
+            or_(Survey.opens_at.is_(None), Survey.opens_at <= now),
+            or_(Survey.closes_at.is_(None), Survey.closes_at > now),
+            # Exclude surveys the user has already submitted
+            Survey.id.not_in(submitted_survey_ids),
+        )
+    )
+    surveys = result.scalars().all()
+
+    return [
+        SurveyPublicResponse(
+            slug=s.slug,
+            title=s.title,
+            description=s.description,
+            config=s.config,
+            opens_at=s.opens_at,
+            closes_at=s.closes_at,
+            is_open=True,
+        )
+        for s in surveys
+    ]
 
 
 @router.get("/{slug}/public", response_model=SurveyPublicResponse)

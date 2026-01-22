@@ -19,7 +19,7 @@ export default function ProtectedRoute({ adminOnly = false }) {
   }
 
   if (adminOnly && !user.is_admin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return <Outlet />;

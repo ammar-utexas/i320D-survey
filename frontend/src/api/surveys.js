@@ -4,6 +4,9 @@ export const surveysApi = {
   // List all surveys for current admin
   list: () => apiRequest('/surveys'),
 
+  // Get active surveys for respondents
+  getActive: () => apiRequest('/surveys/active'),
+
   // Get single survey details
   get: (id) => apiRequest(`/surveys/${id}`),
 

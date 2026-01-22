@@ -60,17 +60,18 @@ export default function SurveyForm({
     }
   };
 
-  const vectors = survey?.vectors || [];
+  // vectors are inside config for API responses, or at top level for direct config objects
+  const vectors = survey?.config?.vectors || survey?.vectors || [];
 
   return (
     <form onSubmit={handleSubmit}>
       {/* Survey Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {survey?.survey_title || survey?.title}
+          {survey?.config?.survey_title || survey?.survey_title || survey?.title}
         </h1>
-        {survey?.description && (
-          <p className="text-gray-600">{survey.description}</p>
+        {(survey?.config?.description || survey?.description) && (
+          <p className="text-gray-600">{survey?.config?.description || survey?.description}</p>
         )}
       </div>
 

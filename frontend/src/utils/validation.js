@@ -61,9 +61,10 @@ export function validateRequired(question, value) {
 export function validateForm(survey, answers) {
   const errors = {};
 
-  if (!survey?.vectors) return errors;
+  const vectors = survey?.config?.vectors || survey?.vectors;
+  if (!vectors) return errors;
 
-  for (const vector of survey.vectors) {
+  for (const vector of vectors) {
     if (!vector.questions) continue;
 
     for (const question of vector.questions) {
@@ -95,9 +96,10 @@ export function hasErrors(errors) {
  * @returns {string|null} First question ID with error
  */
 export function getFirstErrorId(survey, errors) {
-  if (!survey?.vectors) return null;
+  const vectors = survey?.config?.vectors || survey?.vectors;
+  if (!vectors) return null;
 
-  for (const vector of survey.vectors) {
+  for (const vector of vectors) {
     if (!vector.questions) continue;
 
     for (const question of vector.questions) {
