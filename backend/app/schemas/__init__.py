@@ -1,29 +1,31 @@
 # Pydantic schemas
-from app.schemas.user import MessageResponse, UserResponse
+from app.schemas.user import UserResponse, MessageResponse
 from app.schemas.survey import (
     SurveyCreate,
     SurveyUpdate,
     SurveyResponse,
-    SurveyListItem,
+    SurveyListResponse,
     SurveyPublicResponse,
+    SurveyConfigSchema,
 )
 from app.schemas.response import (
     ResponseCreate,
     ResponseResponse,
-    ResponseListItem,
-    MyResponseResponse,
+    ResponseWithUserResponse,
+    ResponseListResponse,
 )
 
 __all__ = [
-    "MessageResponse",
     "UserResponse",
+    "MessageResponse",
     "SurveyCreate",
     "SurveyUpdate",
     "SurveyResponse",
-    "SurveyListItem",
+    "SurveyListResponse",
     "SurveyPublicResponse",
+    "SurveyConfigSchema",
     "ResponseCreate",
     "ResponseResponse",
-    "ResponseListItem",
-    "MyResponseResponse",
+    "ResponseWithUserResponse",
+    "ResponseListResponse",
 ]

@@ -106,11 +106,13 @@ async def github_callback(
 
     # T027: Redirect to frontend with cookie
     response = RedirectResponse(url=settings.FRONTEND_URL, status_code=302)
+    # Use secure=False for localhost development (HTTP)
+    is_localhost = "localhost" in settings.FRONTEND_URL or "127.0.0.1" in settings.FRONTEND_URL
     response.set_cookie(
         key=settings.JWT_COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=True,  # Set to False for local development if not using HTTPS
+        secure=not is_localhost,
         samesite="lax",
         max_age=settings.JWT_EXPIRY_HOURS * 3600,
     )
@@ -137,11 +139,12 @@ async def logout(
     """
     T034, T035, T036: Logout the current user by clearing the session cookie.
     """
+    is_localhost = "localhost" in settings.FRONTEND_URL or "127.0.0.1" in settings.FRONTEND_URL
     response.set_cookie(
         key=settings.JWT_COOKIE_NAME,
         value="",
         httponly=True,
-        secure=True,
+        secure=not is_localhost,
         samesite="lax",
         max_age=0,
     )

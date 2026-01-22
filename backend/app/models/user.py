@@ -29,8 +29,9 @@ class User(Base):
         onupdate=datetime.utcnow,
     )
 
-    surveys = relationship("Survey", back_populates="creator", cascade="all, delete-orphan")
-    responses = relationship("Response", back_populates="user", cascade="all, delete-orphan")
+    # Relationships
+    surveys = relationship("Survey", back_populates="creator")
+    responses = relationship("Response", back_populates="user")
 
     def __repr__(self) -> str:
         return f"<User {self.github_username}>"

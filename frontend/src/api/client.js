@@ -19,7 +19,10 @@ export async function apiRequest(endpoint, options = {}) {
   const response = await fetch(url, config);
 
   if (response.status === 401) {
-    window.location.href = '/login';
+    // Don't redirect if already on login page to avoid infinite loop
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login';
+    }
     throw new Error('Unauthorized');
   }
 
