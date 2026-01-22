@@ -4,15 +4,14 @@ from app.schemas.survey import (
     SurveyCreate,
     SurveyUpdate,
     SurveyResponse,
-    SurveyListResponse,
+    SurveyListItem,
     SurveyPublicResponse,
-    SurveyConfigSchema,
 )
 from app.schemas.response import (
     ResponseCreate,
     ResponseResponse,
-    ResponseWithUserResponse,
-    ResponseListResponse,
+    ResponseListItem,
+    MyResponseResponse,
 )
 
 __all__ = [
@@ -21,11 +20,10 @@ __all__ = [
     "SurveyCreate",
     "SurveyUpdate",
     "SurveyResponse",
-    "SurveyListResponse",
+    "SurveyListItem",
     "SurveyPublicResponse",
-    "SurveyConfigSchema",
     "ResponseCreate",
     "ResponseResponse",
-    "ResponseWithUserResponse",
-    "ResponseListResponse",
+    "ResponseListItem",
+    "MyResponseResponse",
 ]
