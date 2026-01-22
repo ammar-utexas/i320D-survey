@@ -241,11 +241,11 @@ async def list_survey_responses(
 @router.get("/{survey_id}/export")
 async def export_survey_responses(
     survey_id: UUID,
-    format: str = Query("json", regex="^(json|csv)$"),
+    format: str = Query("json", pattern="^(json|csv|xlsx)$"),
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin),
 ) -> StreamingResponse:
-    """Export survey responses as CSV or JSON."""
+    """Export survey responses as JSON, CSV, or XLSX."""
     survey = await get_survey_for_admin(survey_id, db, admin)
 
     stmt = (
@@ -280,6 +280,55 @@ async def export_survey_responses(
             iter([content]),
             media_type="application/json",
             headers={"Content-Disposition": f"attachment; filename={survey.slug}-responses.json"},
+        )
+
+    elif format == "xlsx":
+        import io
+        import json
+        from openpyxl import Workbook
+
+        # Collect all unique question IDs from answers
+        all_question_ids: set[str] = set()
+        for row in rows:
+            all_question_ids.update(row.Response.answers.keys())
+
+        sorted_question_ids = sorted(all_question_ids)
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Responses"
+
+        # Header row
+        header = ["id", "user_id", "github_username", "is_draft", "submitted_at", "created_at"] + sorted_question_ids
+        ws.append(header)
+
+        # Data rows
+        for row in rows:
+            xlsx_row = [
+                str(row.Response.id),
+                str(row.Response.user_id),
+                row.github_username,
+                str(row.Response.is_draft),
+                row.Response.submitted_at.isoformat() if row.Response.submitted_at else "",
+                row.Response.created_at.isoformat(),
+            ]
+            for qid in sorted_question_ids:
+                answer = row.Response.answers.get(qid, "")
+                # Handle complex answer types (lists, dicts)
+                if isinstance(answer, (list, dict)):
+                    xlsx_row.append(json.dumps(answer))
+                else:
+                    xlsx_row.append(str(answer) if answer else "")
+            ws.append(xlsx_row)
+
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={survey.slug}-responses.xlsx"},
         )
 
     else:  # CSV
